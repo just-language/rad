@@ -1,0 +1,14 @@
+{
+  "supports": "(windows | linux | osx | freebsd | openbsd | android) & !uwp",
+  "dependencies": [
+		"openssl", "wolfssl", "mbedtls", "sqlite3",
+		{
+			"name": "liburing",
+			"platform": "linux"
+		},
+		{
+			"name": "unixodbc",
+			"platform": "linux"
+		}
+  ]
+}

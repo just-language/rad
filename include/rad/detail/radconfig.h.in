@@ -1,0 +1,11 @@
+#pragma once
+
+#define RAD_LIB_NAMESPACE rad
+
+#cmakedefine RAD_HAVE_OPENSSL 1
+#cmakedefine RAD_HAVE_WOLFSSL 1
+#cmakedefine RAD_HAVE_SQLITE 1
+#cmakedefine RAD_ENABLE_ASYNC_DEBUG 1
+#cmakedefine RAD_DISABLE_EXECUTOR_THREADS 1
+#cmakedefine RAD_FAST_CRYPTO 1
+#cmakedefine RAD_ENABLE_TRACKABLE 1
