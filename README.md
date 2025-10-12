@@ -61,7 +61,7 @@ There are also `async_event` and `async_phaser` types which provide async event 
 
 The async objects provide `async_*` functions (`async_write`, `async_read`, `async_wait`, ...) to perform async operations using handlers and awaitables.
 
-If the async functions arguments are `Args ... args` then the last arguemnts deduces the type of the async mode used.
+If the async functions arguments are `Args ... args` then the last arguemnts deduces the kind of the async mode used.
 
 ```
 // use awaitables and report errors via exceptions
@@ -110,7 +110,7 @@ The HTTP2 client can also be used to make many parallel DNS requests which is mu
 The library provides SSL support using various SSL backends.
 The currently implemented backends are OpenSSL, WolfSSL and MbedTLS.
 
-The SSL backend interfaces are defined in `<rad/net/ssl/sslctx.h>` and the implementations are defined in `<rad/net/ssl/openssl_ctx.h>` for `net::ssl::openssl::context`, `<rad/net/ssl/wolfssl_ctx.h>` for `net::ssl::wolfssl::context` and `<rad/net/ssl/mbedtls_ctx.h>` for `net::ssl::mbedtlsssl::context`.
+The SSL backend interfaces are defined in `<rad/net/ssl/sslctx.h>` and the implementations are defined in `<rad/net/ssl/openssl_ctx.h>` for `net::ssl::openssl::context`, `<rad/net/ssl/wolfssl_ctx.h>` for `net::ssl::wolfssl::context` and `<rad/net/ssl/mbedtls_ctx.h>` for `net::ssl::mbedtls::context`.
 
 For the MbedTLS backend, many functionalities are added like loading system certificates, using key password and verify callbacks and null terminating PEM keys and certificates buffers if they are not.
 
