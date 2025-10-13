@@ -4,6 +4,11 @@
 #include <tmmintrin.h>
 #endif // __unix__
 
+#if defined(__ARM_ARCH) || defined(_M_ARM) || defined(__aarch64__) ||          \
+    defined(__arm__)
+#undef RAD_FAST_CRYPTO
+#endif
+
 using namespace RAD_LIB_NAMESPACE;
 namespace details = RAD_LIB_NAMESPACE::detail;
 using namespace crypto;
@@ -44,29 +49,6 @@ namespace {
     };
 
     const gcm_category_type gcm_category_inst;
-
-    /*inline m128i g256_mul(m128i X, m128i Y)
-    {
-            m128i Z, V = X;
-
-            for (auto i : range(uint8_t{128}))
-            {
-                    if (Y[i])
-                            Z ^= V;
-
-                    if (!V[127])
-                    {
-                            V.shift_one_bit_right();
-                    }
-                    else
-                    {
-                            V.shift_one_bit_right();
-                            V.buffer()[0] ^= 0xe1;
-                    }
-            }
-
-            return Z;
-    }*/
 
     inline __m128i g256_mul(__m128i X, __m128i Y) noexcept {
         __m128i Z = zero128(), V = X;
@@ -303,10 +285,9 @@ __m128i ghash::calc(__m128i H, const_buffer Abuff,
         return do_ghash<true>(H, A, AsBytes.i, C, CsBytes.i, lens_bits,
                               !AsData.empty(), !CsData.empty());
     }
-    else
 #endif // RAD_FAST_CRYPTO
-        return do_ghash<false>(H, A, AsBytes.i, C, CsBytes.i, lens_bits,
-                               !AsData.empty(), !CsData.empty());
+    return do_ghash<false>(H, A, AsBytes.i, C, CsBytes.i, lens_bits,
+                           !AsData.empty(), !CsData.empty());
 }
 
 #if defined(__GNUC__) && !defined(__clang__)
