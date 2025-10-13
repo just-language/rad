@@ -23,15 +23,16 @@ namespace {
         if (first >= last || d_first == first) {
             return d_first;
         }
-        if (d_first >= last || d_first < first) {
+        std::uint8_t* d_last = d_first + (last - first);
+        if (d_first >= last || d_last <= first) {
             // no overlap
-            return std::copy(first, last, d_first);
+            std::memcpy(d_first, first, (last - first));
         }
         else {
             // overlap
             std::memmove(d_first, first, last - first);
-            return d_first + (last - first);
         }
+        return d_last;
     }
 } // namespace
 
