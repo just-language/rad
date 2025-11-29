@@ -71,7 +71,7 @@ namespace RAD_LIB_NAMESPACE::io {
         RAD_EXPORT_DECL void
         submit_accept(descriptor_data& d,
                       detail::descriptor_data_inner_t& inner, int fd,
-                      void* addr, socklen_t* addr_len,
+                      void* addr, socket_len_t* addr_len,
                       std::error_code& ec) noexcept override;
 
         RAD_EXPORT_DECL void submit_send(descriptor_data& d,
@@ -85,11 +85,10 @@ namespace RAD_LIB_NAMESPACE::io {
                        detail::descriptor_data_inner_t& inner, int fd,
                        msghdr* msg, std::error_code& ec) noexcept override;
 
-        RAD_EXPORT_DECL void
-        submit_sendto(descriptor_data& d,
-                      detail::descriptor_data_inner_t& inner, int fd,
-                      const void* buff, std::size_t n, const void* addr,
-                      socklen_t addrlen, std::error_code& ec) noexcept override;
+        RAD_EXPORT_DECL void submit_sendto(
+            descriptor_data& d, detail::descriptor_data_inner_t& inner, int fd,
+            const void* buff, std::size_t n, const void* addr,
+            socket_len_t addrlen, std::error_code& ec) noexcept override;
 
         RAD_EXPORT_DECL void submit_recv(descriptor_data& d,
                                          detail::descriptor_data_inner_t& inner,

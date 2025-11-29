@@ -40,7 +40,7 @@ void socket_fns::shutdown(socket_fd_t s, socket_shutdown how,
 
 void socket_fns::setopt(socket_fd_t s, socket_option_level level,
                         socket_option_name optname, const void* optdata,
-                        socklen_t optlen, std::error_code& ec) noexcept {
+                        socket_len_t optlen, std::error_code& ec) noexcept {
     int res =
         ::setsockopt(s, as<int>(level), as<int>(optname), optdata, optlen);
     if (res != 0) {
@@ -50,7 +50,7 @@ void socket_fns::setopt(socket_fd_t s, socket_option_level level,
 
 void socket_fns::getopt(socket_fd_t s, socket_option_level level,
                         socket_option_name optname, void* optdata,
-                        socklen_t* optlen, std::error_code& ec) noexcept {
+                        socket_len_t* optlen, std::error_code& ec) noexcept {
     socklen_t len = *optlen;
     int res = ::getsockopt(s, as<int>(level), as<int>(optname), optdata, &len);
     *optlen = len;
@@ -59,7 +59,7 @@ void socket_fns::getopt(socket_fd_t s, socket_option_level level,
     }
 }
 
-void socket_fns::bind(socket_fd_t s, const void* addr, socklen_t addr_len,
+void socket_fns::bind(socket_fd_t s, const void* addr, socket_len_t addr_len,
                       std::error_code& ec) noexcept {
     if (::bind(s, as<const sockaddr*>(addr), addr_len) != 0) {
         ec = os::make_system_error(errno);
@@ -79,14 +79,14 @@ void socket_fns::listen(socket_fd_t s, uint32_t backlog,
 }
 
 socket_handle socket_fns::accept(socket_fd_t s, void* addr,
-                                 socklen_t& addr_size,
+                                 socket_len_t& addr_size,
                                  std::error_code& ec) noexcept {
     socklen_t addr_len = addr_size;
     int fd = ::accept(s, as<sockaddr*>(addr), &addr_len);
-    addr_size = addr_len;
     if (fd == -1) {
         ec = os::make_system_error(errno);
     }
+    addr_size = addr_len;
     return socket_handle{fd};
 }
 
@@ -159,7 +159,7 @@ namespace {
 
     inline size_t recvfrom1buff(socket_fd_t s, mutable_buffer buffer,
                                 transfer_flags flags, void* addr,
-                                socklen_t* len, bool not_zero,
+                                socket_len_t* len, bool not_zero,
                                 std::error_code& ec) {
         flags &= ~transfer_flags::dont_wait;
         bool read_all_buffer = not_zero && flags & transfer_flags::wait_all;
@@ -167,9 +167,11 @@ namespace {
         size_t total_size = buffer.size();
 
         do {
+            socklen_t slen = len == nullptr ? 0 : *len;
             auto result = exec_while_eintr(
                 ::recvfrom, s, buffer.data(), buffer.size(),
-                static_cast<int>(flags), static_cast<sockaddr*>(addr), len);
+                static_cast<int>(flags), static_cast<sockaddr*>(addr),
+                len != nullptr ? &slen : nullptr);
 
             if (result == -1) {
                 ec = os::make_system_error(errno);
@@ -214,7 +216,8 @@ size_t socket_fns::recv(socket_fd_t s, const mutable_buffer* buffers,
 
 size_t socket_fns::sendto(socket_fd_t s, const const_buffer* buffers,
                           size_t count, transfer_flags flags, const void* addr,
-                          socklen_t addr_size, std::error_code& ec) noexcept {
+                          socket_len_t addr_size,
+                          std::error_code& ec) noexcept {
     flags &= ~transfer_flags::dont_wait;
     flags |= transfer_flags::no_signal;
 
@@ -253,7 +256,7 @@ size_t socket_fns::sendto(socket_fd_t s, const const_buffer* buffers,
 
 size_t socket_fns::recvfrom(socket_fd_t s, const mutable_buffer* buffers,
                             size_t count, transfer_flags flags, void* addr,
-                            socklen_t* addr_size, bool not_zero,
+                            socket_len_t* addr_size, bool not_zero,
                             std::error_code& ec) noexcept {
     static_assert(sizeof(iovec) == sizeof(mutable_buffer),
                   "sizeof iovec != sizeof mutable_buffer");
@@ -312,23 +315,29 @@ size_t socket_fns::recvfrom(socket_fd_t s, const mutable_buffer* buffers,
     return transferred;
 }
 
-void socket_fns::local_endpoint(socket_fd_t s, void* addr, socklen_t& addr_len,
+void socket_fns::local_endpoint(socket_fd_t s, void* addr,
+                                socket_len_t& addr_len,
                                 std::error_code& ec) noexcept {
-    int result = ::getsockname(s, static_cast<sockaddr*>(addr), &addr_len);
+    socklen_t slen = addr_len;
+    int result = ::getsockname(s, static_cast<sockaddr*>(addr), &slen);
+    addr_len = slen;
     if (result != 0) {
         ec = os::make_system_error(errno);
     }
 }
 
-void socket_fns::remote_endpoint(socket_fd_t s, void* addr, socklen_t& addr_len,
+void socket_fns::remote_endpoint(socket_fd_t s, void* addr,
+                                 socket_len_t& addr_len,
                                  std::error_code& ec) noexcept {
-    int result = ::getpeername(s, static_cast<sockaddr*>(addr), &addr_len);
+    socklen_t slen = addr_len;
+    int result = ::getpeername(s, static_cast<sockaddr*>(addr), &slen);
+    addr_len = slen;
     if (result != 0) {
         ec = os::make_system_error(errno);
     }
 }
 
-void socket_fns::connect(socket_fd_t s, const void* addr, socklen_t addr_len,
+void socket_fns::connect(socket_fd_t s, const void* addr, socket_len_t addr_len,
                          std::error_code& ec) noexcept {
     if (::connect(s, static_cast<const sockaddr*>(addr), addr_len) != 0) {
         ec = os::make_system_error(errno);

@@ -33,7 +33,7 @@ namespace RAD_LIB_NAMESPACE::net::detail {
             return &val;
         }
 
-        constexpr socklen_t size() const noexcept {
+        constexpr socket_len_t size() const noexcept {
             return sizeof(val);
         }
 
@@ -53,7 +53,7 @@ namespace RAD_LIB_NAMESPACE::net::detail {
             return nullptr;
         }
 
-        constexpr socklen_t size() const noexcept {
+        constexpr socket_len_t size() const noexcept {
             return 0;
         }
     };

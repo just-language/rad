@@ -17,7 +17,7 @@ using ULONG_PTR = uintptr_t;
 using ULONG_PTR = unsigned long;
 #endif // _WIN64
 using socket_fd_t = ULONG_PTR;
-using socklen_t = int;
+using socket_len_t = int;
 
 struct _OVERLAPPED;
 using LPOVERLAPPED = _OVERLAPPED*;

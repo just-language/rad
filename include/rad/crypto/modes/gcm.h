@@ -62,17 +62,17 @@ namespace RAD_LIB_NAMESPACE::crypto {
         static constexpr std::size_t block_length = 16;
         using block_type = std::array<uint8_t, block_length>;
 
-        RAD_EXPORT_DECL static __m128i step(__m128i H, __m128i X,
-                                            const_buffer data) noexcept;
+        RAD_EXPORT_DECL static m128i_type step(m128i_type H, m128i_type X,
+                                               const_buffer data) noexcept;
 
-        RAD_EXPORT_DECL static __m128i step(__m128i H, __m128i X,
-                                            __m128i block) noexcept;
+        RAD_EXPORT_DECL static m128i_type step(m128i_type H, m128i_type X,
+                                               m128i_type block) noexcept;
 
-        RAD_EXPORT_DECL static __m128i merge_lengths(uint64_t a_len,
-                                                     uint64_t c_len) noexcept;
+        RAD_EXPORT_DECL static m128i_type
+        merge_lengths(uint64_t a_len, uint64_t c_len) noexcept;
 
-        RAD_EXPORT_DECL static __m128i calc(__m128i H, const_buffer Ablocks,
-                                            const_buffer Cblocks) noexcept;
+        RAD_EXPORT_DECL static m128i_type
+        calc(m128i_type H, const_buffer Ablocks, const_buffer Cblocks) noexcept;
     };
 
     template <class Cipher>
@@ -318,7 +318,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
             encrypt_blocks(input_output);
             auto C = input_output;
             auto A = additional_data;
-            __m128i T = m128i_utils::xor128(ghash::calc(H, A, C), EKY0_);
+            m128i_type T = m128i_utils::xor128(ghash::calc(H, A, C), EKY0_);
 
             m128i_utils::copy_to(tag.data(), &T,
                                  std::min(tag.size(), sizeof(T)));
@@ -420,7 +420,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
                 read_size -= read_size % block_length;
             }
 
-            __m128i X = m128i_utils::zero128();
+            m128i_type X = m128i_utils::zero128();
             X = ghash::step(H, X, aad_data);
 
             uint64_t cipher_size = 0;
@@ -446,7 +446,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
             X = ghash::step(
                 H, X,
                 ghash::merge_lengths(aad_data.size() * 8, cipher_size * 8));
-            __m128i T = m128i_utils::xor128(X, EKY0_);
+            m128i_type T = m128i_utils::xor128(X, EKY0_);
             m128i_utils::copy_to(tag.data(), &T,
                                  std::min(tag.size(), sizeof(T)));
         }
@@ -757,7 +757,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
             EKY0_ = E(Y0_);
         }
 
-        __m128i compute_H() {
+        m128i_type compute_H() {
             alignas(16) block_type block0s{};
             cipher_.encrypt(block0s);
             return m128i_utils::load(block0s.data());
@@ -767,13 +767,13 @@ namespace RAD_LIB_NAMESPACE::crypto {
             ++counter.u32parts.inc_u;
         }
 
-        __m128i E(const iv_type& Y0) {
+        m128i_type E(const iv_type& Y0) {
             alignas(16) auto Ebuff = Y0_;
             cipher_.encrypt(Ebuff);
             return m128i_utils::load(Ebuff.data());
         }
 
-        __m128i E(const iv_storage& counter) {
+        m128i_type E(const iv_storage& counter) {
             alignas(16) auto Ebuff = counter.Yi;
             cipher_.encrypt(Ebuff);
             return m128i_utils::load(Ebuff.data());
@@ -798,7 +798,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
         }
 
         void encrypt_aligned(mutable_buffer blocks, size_t n) noexcept {
-            auto P = blocks.to_span<__m128i>();
+            auto P = blocks.to_span<m128i_type>();
             for (auto i : range(n)) {
                 incr(iv_counter_);
                 auto EKYi = E(iv_counter_);
@@ -811,8 +811,8 @@ namespace RAD_LIB_NAMESPACE::crypto {
             auto P = unaligned_blocks.to_span<unaligned_block_t>();
             for (auto i : range(n)) {
                 incr(iv_counter_);
-                __m128i EKYi = E(iv_counter_);
-                __m128i pi = m128i_utils::load(&P[i]);
+                m128i_type EKYi = E(iv_counter_);
+                m128i_type pi = m128i_utils::load(&P[i]);
                 pi = m128i_utils::xor128(pi, EKYi);
                 m128i_utils::store(pi, &P[i]);
             }
@@ -856,10 +856,10 @@ namespace RAD_LIB_NAMESPACE::crypto {
             }
         }
 
-        alignas(16) __m128i H =
-            m128i_utils::zero128(); // the result of E(K, 0128)
-        alignas(16) __m128i EKY0_ =
-            m128i_utils::zero128();      // the result of E(K, Y0)
+        alignas(16)
+            m128i_type H = m128i_utils::zero128(); // the result of E(K, 0128)
+        alignas(16)
+            m128i_type EKY0_ = m128i_utils::zero128(); // the result of E(K, Y0)
         alignas(16) cipher_type cipher_; // the underlying cipher used for
                                          // encryption and decryption
                                          // through its encrypt method

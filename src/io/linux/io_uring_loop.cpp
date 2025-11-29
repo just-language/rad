@@ -524,7 +524,7 @@ void io_uring_loop::submit_connect(descriptor_data& d,
 
 void io_uring_loop::submit_accept(descriptor_data& d,
                                   detail::descriptor_data_inner_t& inner,
-                                  int fd, void* addr, socklen_t* addr_len,
+                                  int fd, void* addr, socket_len_t* addr_len,
                                   std::error_code& ec) noexcept {
     ec.clear();
     if (!valid_submit_handle(fd, ec)) {
@@ -536,7 +536,9 @@ void io_uring_loop::submit_accept(descriptor_data& d,
         return;
     }
     ::io_uring_sqe_set_data(sqe, inner.in_op);
-    ::io_uring_prep_accept(sqe, fd, static_cast<sockaddr*>(addr), addr_len,
+    static_assert(sizeof(socket_len_t) == sizeof(socklen_t));
+    ::io_uring_prep_accept(sqe, fd, static_cast<sockaddr*>(addr),
+                           reinterpret_cast<socklen_t*>(addr_len),
                            SOCK_CLOEXEC);
     submit_if_batch_exceeded(d, inner, ec, ring_lock);
 }
@@ -586,7 +588,7 @@ void io_uring_loop::submit_sendmsg(descriptor_data& d,
 void io_uring_loop::submit_sendto(descriptor_data& d,
                                   detail::descriptor_data_inner_t& inner,
                                   int fd, const void* buff, std::size_t n,
-                                  const void* addr, socklen_t addrlen,
+                                  const void* addr, socket_len_t addrlen,
                                   std::error_code& ec) noexcept {
     ec.clear();
     if (!valid_submit_handle(fd, ec)) {

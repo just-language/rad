@@ -340,7 +340,7 @@ void odbc::detail::stmt_handle_deleter::operator()(void* ptr) const noexcept {
 }
 
 void odbc::set_connection_pooling(connection_pooling pooling) {
-    const SQLINTEGER value = static_cast<SQLINTEGER>(pooling);
+    const uintptr_t value = static_cast<uintptr_t>(pooling);
     SQLRETURN ret = ::SQLSetEnvAttr(nullptr, SQL_ATTR_CONNECTION_POOLING,
                                     reinterpret_cast<SQLPOINTER>(value), 0);
     if (!SQL_SUCCEEDED(ret)) {

@@ -69,14 +69,15 @@ namespace RAD_LIB_NAMESPACE::os {
     inline std::error_code make_system_error(DWORD val) noexcept {
         return std::error_code{static_cast<int>(val), system_category()};
     }
-#endif // _WIN32
 
-    // for WSAGetLastError() and unix errors
+    // for WSAGetLastError()
     inline std::error_code make_system_error(int val) noexcept {
         return std::error_code{val, system_category()};
     }
+#endif // _WIN32
 
 #ifndef _WIN32
+    // for unix errors
     inline std::error_code make_system_error(ssize_t val) noexcept {
         return std::error_code{static_cast<int>(val), system_category()};
     }

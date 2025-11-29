@@ -7,6 +7,16 @@
 #include <system_error>
 #include <type_traits>
 
+#if defined(__aarch64__) || defined(_M_ARM64) || defined(__ARM_ARCH) ||        \
+    defined(_M_ARM)
+#define RAD_CPU_ARM_ARCH
+#if defined(__aarch64__) || defined(_M_ARM64)
+#define RAD_CPU_ARM64_ARCH
+#endif // __aarch64__ || _M_ARM64
+#else
+#define RAD_CPU_X86_ARCH
+#endif // __aarch64__ || _M_ARM64 || __ARM_ARCH || _M_ARM
+
 #define RAD_OVERLOAD_ENUM_OPERATORS(x)                                         \
     class OverloadedEnumOperators_##x {                                        \
         using enumType = std::underlying_type_t<x>;                            \

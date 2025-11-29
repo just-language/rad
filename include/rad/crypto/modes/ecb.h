@@ -18,8 +18,8 @@ namespace RAD_LIB_NAMESPACE::crypto {
     template <class Cipher, class Padding = PKCS7>
     class alignas(16) ecb_mode {
         using btype =
-            std::conditional_t<Cipher::block_length == sizeof(__m128i), __m128i,
-                               typename Cipher::block_type>;
+            std::conditional_t<Cipher::block_length == sizeof(m128i_type),
+                               m128i_type, typename Cipher::block_type>;
 
     public:
         using cipher_type = Cipher;
@@ -222,7 +222,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
 
         template <bool Encrypt>
         void encrypt_decrypt_aligned(mutable_buffer input_output)
-            requires std::same_as<btype, __m128i>
+            requires std::same_as<btype, m128i_type>
         {
             auto plaintext = input_output.to_span<btype>().subspan(
                 0, input_output.size() / block_length);
@@ -233,7 +233,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
 
         template <bool Encrypt>
         void encrypt_decrypt_aligned(mutable_buffer input_output)
-            requires(!std::same_as<btype, __m128i>)
+            requires(!std::same_as<btype, m128i_type>)
         {
             auto plaintext = input_output.to_span<btype>().subspan(
                 0, input_output.size() / block_length);
@@ -245,14 +245,14 @@ namespace RAD_LIB_NAMESPACE::crypto {
 
         template <bool Encrypt>
         void encrypt_decrypt_unaligned(mutable_buffer input_output)
-            requires std::same_as<btype, __m128i>
+            requires std::same_as<btype, m128i_type>
         {
             using unaligned_block_t = std::array<uint8_t, 16>;
             static_assert(sizeof(unaligned_block_t) == 16);
             auto plaintext = input_output.to_span<unaligned_block_t>().subspan(
                 0, input_output.size() / block_length);
             for (auto& block : plaintext) {
-                __m128i aligned_block = m128i_utils::load(&block);
+                m128i_type aligned_block = m128i_utils::load(&block);
                 Encrypt ? cipher_.enrypt(aligned_block)
                         : cipher_.decrypt(aligned_block);
                 m128i_utils::store(aligned_block, &block);
@@ -261,7 +261,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
 
         template <bool Encrypt>
         void encrypt_decrypt_unaligned(mutable_buffer input_output)
-            requires(!std::same_as<btype, __m128i>)
+            requires(!std::same_as<btype, m128i_type>)
         {
             auto plaintext = input_output.to_span<btype>().subspan(
                 0, input_output.size() / block_length);

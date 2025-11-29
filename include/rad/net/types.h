@@ -528,6 +528,27 @@ namespace RAD_LIB_NAMESPACE::net {
         multi_cast_leave_group = 36,
     };
 
+#ifdef __ANDROID__
+    /*!
+     * @brief Resolver flags used by getaddrinfo.
+     */
+    enum class resolver_flags : int {
+        /// No flags.
+        none = 0x0,
+        /// AI_PASSIVE
+        passive = 0x01,
+        /// AI_CANONNAME
+        canon_name = 0x02,
+        /// AI_NUMERICHOST
+        numeric_host = 0x04,
+        /// AI_ALL
+        all = 256,
+        /// AI_ADDRCONFIG
+        addr_config = 1024,
+        /// AI_V4MAPPED
+        ipv4_mapped = 2048,
+    };
+#else
     /*!
      * @brief Resolver flags used by getaddrinfo.
      */
@@ -547,6 +568,7 @@ namespace RAD_LIB_NAMESPACE::net {
         /// AI_V4MAPPED
         ipv4_mapped = 0x08,
     };
+#endif // __ANDROID__
 
 #else
     /*!
@@ -1498,7 +1520,7 @@ namespace RAD_LIB_NAMESPACE::net {
         /*!
          * @brief The type used as the socket address length type.
          */
-        using size_type = socklen_t;
+        using size_type = socket_len_t;
 
         /*!
          * @brief Get the length of this socket address.
@@ -1567,7 +1589,7 @@ namespace RAD_LIB_NAMESPACE::net {
         /*!
          * @brief The type used as the socket address length type.
          */
-        using size_type = socklen_t;
+        using size_type = socket_len_t;
 
         /*!
          * @brief Create any IPv4 address (0.0.0.0) with any port (0) in host
@@ -1993,7 +2015,7 @@ namespace RAD_LIB_NAMESPACE::net {
      */
     class endpoint {
     public:
-        using size_type = socklen_t;
+        using size_type = socket_len_t;
         using ipv4_bytes_type = ipv4::bytes_type;
         using ipv6_bytes_type = ipv6::bytes_type;
 
@@ -2137,7 +2159,7 @@ namespace RAD_LIB_NAMESPACE::net {
          * undefined
          */
         endpoint(init_sockaddr_t, const void* sockaddr,
-                 [[maybe_unused]] socklen_t addrlen) noexcept {
+                 [[maybe_unused]] socket_len_t addrlen) noexcept {
             assert(addrlen <= sizeof(*this));
             memcpy(this, sockaddr, static_cast<size_t>(addrlen));
             assert(is_valid_address(sockaddr, addrlen));
@@ -2177,7 +2199,7 @@ namespace RAD_LIB_NAMESPACE::net {
          * address with port) otherwise the behavior is
          * undefined
          */
-        void set_address(const void* sockaddr, socklen_t addrlen) noexcept {
+        void set_address(const void* sockaddr, socket_len_t addrlen) noexcept {
             new (this) endpoint(init_sockaddr, sockaddr, addrlen);
         }
 
@@ -2353,7 +2375,7 @@ namespace RAD_LIB_NAMESPACE::net {
          * otherwise
          */
         static bool is_valid_address(const void* addr,
-                                     socklen_t addrlen) noexcept {
+                                     socket_len_t addrlen) noexcept {
             return (addrlen == sizeof(ipv4_endpoint) &&
                     reinterpret_cast<const endpoint*>(addr)->is_v4()) ||
                    (addrlen == sizeof(ipv6_endpoint) &&

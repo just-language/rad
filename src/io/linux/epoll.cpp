@@ -20,7 +20,7 @@ namespace {
 
 static_assert(sizeof(epoll_event_t) == sizeof(epoll_event));
 static_assert(offsetof(epoll_event_t, events) == offsetof(epoll_event, events));
-static_assert(offsetof(epoll_event_t, ptr) == offsetof(epoll_event, data));
+static_assert(offsetof(epoll_event_t, data) == offsetof(epoll_event, data));
 
 void epoll::create(std::error_code& ec) noexcept {
     ec.clear();
@@ -37,7 +37,7 @@ void epoll::ctl(epoll_op op, int fd, const epoll_event_t& ev,
     ec.clear();
     struct epoll_event epev;
     epev.events = static_cast<uint32_t>(ev.events);
-    epev.data.ptr = ev.ptr;
+    epev.data.ptr = ev.data.ptr;
     int result = ::epoll_ctl(epoll_fd.get(), static_cast<int>(op), fd, &epev);
     if (result == -1) {
         ec.assign(errno, std::system_category());

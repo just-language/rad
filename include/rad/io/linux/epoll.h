@@ -99,25 +99,36 @@ namespace RAD_LIB_NAMESPACE::io {
 
     RAD_OVERLOAD_ENUM_OPERATORS(epoll_events);
 
+    union epoll_event_data_t {
+        void* ptr;
+        int fd;
+        uint32_t u32;
+        uint64_t u64;
+    };
+
     /*!
      * @brief This struct has the same layout as epoll_event.
      */
     struct epoll_event_t {
         epoll_events events;
-        void* ptr;
+        epoll_event_data_t data;
 
         static constexpr uintptr_t get_ident() noexcept {
             return 0;
         }
 
         constexpr void* get_data() const noexcept {
-            return ptr;
+            return data.ptr;
         }
 
         constexpr uint32_t get_events() const noexcept {
             return static_cast<uint32_t>(events);
         }
-    } __attribute__((__packed__));
+    }
+#ifdef __x86_64__
+    __attribute__((__packed__))
+#endif // __x86_64__
+    ;
 
     /*!
      * @brief RAII Wrapper for epoll file descriptor.
@@ -218,7 +229,7 @@ namespace RAD_LIB_NAMESPACE::io {
             epoll_event_t ev;
             ev.events = epoll_events::edge_triggered | epoll_events::in |
                         epoll_events::rdhup;
-            ev.ptr = data;
+            ev.data.ptr = data;
             ctl(epoll_op::add, fd, ev, ec);
         }
 
@@ -272,7 +283,7 @@ namespace RAD_LIB_NAMESPACE::io {
             epoll_event_t ev;
             ev.events = epoll_events::edge_triggered | epoll_events::out |
                         epoll_events::in | epoll_events::rdhup;
-            ev.ptr = data;
+            ev.data.ptr = data;
             ctl(epoll_op::add, fd, ev, ec);
         }
 

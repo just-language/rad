@@ -269,7 +269,7 @@ namespace RAD_LIB_NAMESPACE {
         virtual void submit_sendto(descriptor_data& d,
                                    io::detail::descriptor_data_inner_t& inner,
                                    int fd, const void* buff, std::size_t n,
-                                   const void* addr, socklen_t addrlen,
+                                   const void* addr, socket_len_t addrlen,
                                    std::error_code& ec) noexcept = 0;
 
         virtual void submit_readv(descriptor_data& d,
@@ -295,7 +295,7 @@ namespace RAD_LIB_NAMESPACE {
 
         virtual void submit_accept(descriptor_data& d,
                                    io::detail::descriptor_data_inner_t& inner,
-                                   int fd, void* addr, socklen_t* addr_len,
+                                   int fd, void* addr, socket_len_t* addr_len,
                                    std::error_code& ec) noexcept = 0;
     };
 #endif // RAD_HAS_IO_URING

@@ -249,7 +249,7 @@ namespace RAD_LIB_NAMESPACE::net {
                         std::error_code& ec) const noexcept {
             static_assert(is_supported_option<SocketOption, Protocol>,
                           "unsupported option for this protocol");
-            socklen_t size = option.size();
+            socket_len_t size = option.size();
             impl.get_option(option.level(), option.name(), option.data(), size,
                             ec);
         }
@@ -292,7 +292,7 @@ namespace RAD_LIB_NAMESPACE::net {
          */
         endpoint_type local_endpoint(std::error_code& ec) const noexcept {
             endpoint_type address;
-            socklen_t size = endpoint_type::max_size();
+            socket_len_t size = endpoint_type::max_size();
             impl.local_endpoint(address.address(), size, ec);
             if (!ec) {
                 address.resize(size);
@@ -326,7 +326,7 @@ namespace RAD_LIB_NAMESPACE::net {
          */
         endpoint_type remote_endpoint(std::error_code& ec) const noexcept {
             endpoint_type address;
-            socklen_t size = endpoint_type::max_size();
+            socket_len_t size = endpoint_type::max_size();
             impl.remote_endpoint(address.address(), size, ec);
             if (!ec) {
                 address.resize(size);
@@ -936,7 +936,7 @@ namespace RAD_LIB_NAMESPACE::net {
             auto [buffs, n] = extract_buffers<false>(buffers);
             bool not_zero =
                 protocol_type::is_stream_protocol && not_empty_buffers(buffers);
-            socklen_t size = endpoint_type::max_size();
+            socket_len_t size = endpoint_type::max_size();
             auto recved = impl.receive_from(buffs, n, not_zero, flags,
                                             sender.address(), size, ec);
             if (!ec) {
@@ -2886,7 +2886,7 @@ namespace RAD_LIB_NAMESPACE::net {
         template <StreamSocketType Stream>
         void accept(Stream& peer_sock, endpoint_type& peer_endpoint,
                     std::error_code& ec) noexcept {
-            socklen_t size = peer_endpoint.size();
+            socket_len_t size = peer_endpoint.size();
             auto new_sock = impl.accept(peer_endpoint.address(), size, ec);
             if (!ec) {
                 peer_endpoint.resize(size);

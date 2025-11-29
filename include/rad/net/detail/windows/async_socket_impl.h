@@ -274,19 +274,20 @@ namespace RAD_LIB_NAMESPACE::net::detail {
 
         RAD_EXPORT_DECL void set_option(socket_option_level level,
                                         socket_option_name optname,
-                                        const void* optdata, socklen_t optlen,
+                                        const void* optdata,
+                                        socket_len_t optlen,
                                         std::error_code& ec) noexcept;
 
         RAD_EXPORT_DECL void get_option(socket_option_level level,
                                         socket_option_name optname,
-                                        void* optdata, socklen_t& optlen,
+                                        void* optdata, socket_len_t& optlen,
                                         std::error_code& ec) const noexcept;
 
-        RAD_EXPORT_DECL void local_endpoint(void* address, socklen_t& size,
+        RAD_EXPORT_DECL void local_endpoint(void* address, socket_len_t& size,
                                             std::error_code& ec) const noexcept;
 
         RAD_EXPORT_DECL void
-        remote_endpoint(void* address, socklen_t& size,
+        remote_endpoint(void* address, socket_len_t& size,
                         std::error_code& ec) const noexcept;
 
         static constexpr int max_listen_backlog() noexcept {
@@ -297,14 +298,14 @@ namespace RAD_LIB_NAMESPACE::net::detail {
         RAD_EXPORT_DECL void listen(uint32_t backlog,
                                     std::error_code& ec) noexcept;
 
-        RAD_EXPORT_DECL void bind(const void* address, socklen_t size,
+        RAD_EXPORT_DECL void bind(const void* address, socket_len_t size,
                                   std::error_code& ec) noexcept;
 
         RAD_EXPORT_DECL native_handle_type accept(void* address,
-                                                  socklen_t& size,
+                                                  socket_len_t& size,
                                                   std::error_code& ec) noexcept;
 
-        RAD_EXPORT_DECL void connect(const void* address, socklen_t size,
+        RAD_EXPORT_DECL void connect(const void* address, socket_len_t size,
                                      std::error_code& ec) noexcept;
 
         RAD_EXPORT_DECL std::size_t send(const const_buffer* buffs,
@@ -313,7 +314,8 @@ namespace RAD_LIB_NAMESPACE::net::detail {
 
         RAD_EXPORT_DECL std::size_t send_to(const const_buffer* buffs,
                                             std::size_t n, transfer_flags flags,
-                                            const void* address, socklen_t size,
+                                            const void* address,
+                                            socket_len_t size,
                                             std::error_code& ec) noexcept;
 
         RAD_EXPORT_DECL std::size_t receive(const mutable_buffer* buffs,
@@ -321,11 +323,10 @@ namespace RAD_LIB_NAMESPACE::net::detail {
                                             transfer_flags flags,
                                             std::error_code& ec) noexcept;
 
-        RAD_EXPORT_DECL std::size_t receive_from(const mutable_buffer* buffs,
-                                                 std::size_t n, bool not_zero,
-                                                 transfer_flags flags,
-                                                 void* address, socklen_t& size,
-                                                 std::error_code& ec) noexcept;
+        RAD_EXPORT_DECL std::size_t
+        receive_from(const mutable_buffer* buffs, std::size_t n, bool not_zero,
+                     transfer_flags flags, void* address, socket_len_t& size,
+                     std::error_code& ec) noexcept;
 
         template <class Protocol>
         auto async_accept(std::error_code& ec = no_ec) {
@@ -608,7 +609,7 @@ namespace RAD_LIB_NAMESPACE::net::detail {
                         DWORD one_addr_size, io_op& op) noexcept;
 
         RAD_EXPORT_DECL async_result do_async_connect(const void* address,
-                                                      socklen_t size,
+                                                      socket_len_t size,
                                                       io_op& op) noexcept;
 
         RAD_EXPORT_DECL async_result do_async_write(const const_buffer* buffs,
@@ -618,7 +619,7 @@ namespace RAD_LIB_NAMESPACE::net::detail {
 
         RAD_EXPORT_DECL async_result do_async_sendto(
             const const_buffer* buffs, uint32_t n, transfer_flags flags,
-            const void* address, socklen_t size, io_op& op) noexcept;
+            const void* address, socket_len_t size, io_op& op) noexcept;
 
         RAD_EXPORT_DECL async_result do_async_read(const mutable_buffer* buffs,
                                                    uint32_t n,
@@ -628,9 +629,9 @@ namespace RAD_LIB_NAMESPACE::net::detail {
 
         RAD_EXPORT_DECL async_result do_async_recvfrom(
             const mutable_buffer* buffs, uint32_t n, transfer_flags flags,
-            void* address, socklen_t* size, io_op& op) noexcept;
+            void* address, socket_len_t* size, io_op& op) noexcept;
 
-        RAD_EXPORT_DECL std::pair<const uint8_t*, socklen_t>
+        RAD_EXPORT_DECL std::pair<const uint8_t*, socket_len_t>
         get_accept_result(io_op& op, uint8_t* addrs, DWORD one_addr_size,
                           std::error_code& ec) noexcept;
 
@@ -643,7 +644,7 @@ namespace RAD_LIB_NAMESPACE::net::detail {
         get_read_result(io_op& op, bool not_zero, std::error_code& ec) noexcept;
 
         // returns a span for the remote address
-        RAD_EXPORT_DECL static std::pair<const uint8_t*, socklen_t>
+        RAD_EXPORT_DECL static std::pair<const uint8_t*, socket_len_t>
         parse_accept_addrs(uint8_t* addrs, DWORD one_addr_size) noexcept;
 
         void report_error(std::error_code& out_ec, const std::error_code& in_ec,
@@ -774,7 +775,7 @@ namespace RAD_LIB_NAMESPACE::net::detail {
         static constexpr bool holds_ref = false;
         static constexpr DWORD address_size = Endpoint::max_size();
 
-        void set_address(const void* addr, socklen_t len) noexcept {
+        void set_address(const void* addr, socket_len_t len) noexcept {
             address.set_address(addr, len);
         }
 
@@ -790,7 +791,7 @@ namespace RAD_LIB_NAMESPACE::net::detail {
             : address{address} {
         }
 
-        void set_address(const void* addr, socklen_t len) noexcept {
+        void set_address(const void* addr, socket_len_t len) noexcept {
             address.set_address(addr, len);
         }
 
@@ -916,10 +917,10 @@ namespace RAD_LIB_NAMESPACE::net::detail {
     struct [[nodiscard]] async_socket_impl::connect_awaiter final
         : awaiter_common {
         const void* address;
-        socklen_t size;
+        socket_len_t size;
 
         connect_awaiter(async_socket_impl& impl, const void* addr,
-                        socklen_t size, std::error_code& ec) noexcept
+                        socket_len_t size, std::error_code& ec) noexcept
             : awaiter_common(impl, ec, details::async_op_type::connect),
               address{addr}, size{size} {
         }
@@ -1007,11 +1008,11 @@ namespace RAD_LIB_NAMESPACE::net::detail {
     struct [[nodiscard]] async_socket_impl::sendto_awaiter final
         : public write_awaiter {
         const void* address;
-        socklen_t address_size;
+        socket_len_t address_size;
 
         sendto_awaiter(async_socket_impl& impl, const const_buffer* buffs,
                        uint32_t n, transfer_flags f, const void* addr,
-                       socklen_t size, std::error_code& ec) noexcept
+                       socket_len_t size, std::error_code& ec) noexcept
             : write_awaiter(impl, buffs, n, f, ec), address{addr},
               address_size{size} {
         }
@@ -1029,7 +1030,7 @@ namespace RAD_LIB_NAMESPACE::net::detail {
         : public async_socket_impl::read_awaiter {
         using base = async_socket_impl::read_awaiter;
         Endpoint& sender;
-        socklen_t size = Endpoint::max_size();
+        socket_len_t size = Endpoint::max_size();
 
         recvfrom_awaiter(async_socket_impl& impl, const mutable_buffer* buffs,
                          uint32_t n, transfer_flags flags, Endpoint& sender,
@@ -1266,7 +1267,7 @@ namespace RAD_LIB_NAMESPACE::net::detail {
         ref<async_socket_impl> impl;
         handler_t handler;
         Endpoint& sender;
-        socklen_t size = Endpoint::max_size();
+        socket_len_t size = Endpoint::max_size();
 
         template <class H>
         recvfrom_op(async_socket_impl& impl, H&& handler, Endpoint& sender,

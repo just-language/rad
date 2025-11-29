@@ -276,18 +276,14 @@ namespace rad::json {
          * @return Pointer to the underlying array serving as
          * element storage.
          */
-        value* data() noexcept {
-            return values_.data();
-        }
+        value* data() noexcept;
 
         /*!
          * @brief Access the underlying array directly.
          * @return Pointer to the underlying array serving as
          * element storage.
          */
-        const value* data() const noexcept {
-            return values_.data();
-        }
+        const value* data() const noexcept;
 
         /*!
          * @brief Check if the array has no elements.
@@ -500,9 +496,7 @@ namespace rad::json {
          * If the container is empty, end() is returned.
          * @return Iterator to the first element.
          */
-        iterator begin() {
-            return values_.begin();
-        }
+        iterator begin();
 
         /*!
          * @brief Return a iterator past the last element.
@@ -510,18 +504,14 @@ namespace rad::json {
          * Dereferencing it results in undefined behavior.
          * @return Iterator past the last element.
          */
-        iterator end() {
-            return values_.end();
-        }
+        iterator end();
 
         /*!
          * @brief Return a const iterator to the first element.
          * If the container is empty, end() is returned.
          * @return Iterator to the first element.
          */
-        const_iterator begin() const {
-            return values_.begin();
-        }
+        const_iterator begin() const;
 
         /*!
          * @brief Return a const iterator past the last element.
@@ -529,18 +519,14 @@ namespace rad::json {
          * Dereferencing it results in undefined behavior.
          * @return Iterator past the last element.
          */
-        const_iterator end() const {
-            return values_.end();
-        }
+        const_iterator end() const;
 
         /*!
          * @brief Return a const iterator to the first element.
          * If the container is empty, cend() is returned.
          * @return Iterator to the first element.
          */
-        const_iterator cbegin() const {
-            return values_.cbegin();
-        }
+        const_iterator cbegin() const;
 
         /*!
          * @brief Return a const iterator past the last element.
@@ -548,9 +534,7 @@ namespace rad::json {
          * Dereferencing it results in undefined behavior.
          * @return Iterator past the last element.
          */
-        const_iterator cend() const {
-            return values_.cend();
-        }
+        const_iterator cend() const;
 
         /*!
          * @brief Return a reverse iterator to the first element
@@ -561,9 +545,7 @@ namespace rad::json {
          * @return Reverse iterator to the first element of the
          * reversed container.
          */
-        reverse_iterator rbegin() {
-            return values_.rbegin();
-        }
+        reverse_iterator rbegin();
 
         /*!
          * @brief Return a reverse iterator to the element
@@ -576,9 +558,7 @@ namespace rad::json {
          * @return Reverse iterator to the element following the
          * last element of the reversed container.
          */
-        reverse_iterator rend() {
-            return values_.rend();
-        }
+        reverse_iterator rend();
 
         /*!
          * @brief Return a reverse iterator to the first element
@@ -589,9 +569,7 @@ namespace rad::json {
          * @return Reverse iterator to the first element of the
          * reversed container.
          */
-        const_reverse_iterator rbegin() const {
-            return values_.rbegin();
-        }
+        const_reverse_iterator rbegin() const;
 
         /*!
          * @brief Return a reverse iterator to the element
@@ -604,9 +582,7 @@ namespace rad::json {
          * @return Reverse iterator to the element following the
          * last element of the reversed container.
          */
-        const_reverse_iterator rend() const {
-            return values_.rend();
-        }
+        const_reverse_iterator rend() const;
 
         /*!
          * @brief Return a const reverse iterator to the first
@@ -617,9 +593,7 @@ namespace rad::json {
          * @return Reverse iterator to the first element of the
          * reversed container.
          */
-        const_reverse_iterator crbegin() const {
-            return values_.crbegin();
-        }
+        const_reverse_iterator crbegin() const;
 
         /*!
          * @brief Return a const reverse iterator to the element
@@ -632,9 +606,7 @@ namespace rad::json {
          * @return Reverse iterator to the element following the
          * last element of the reversed container.
          */
-        const_reverse_iterator crend() const {
-            return values_.crend();
-        }
+        const_reverse_iterator crend() const;
 
         /*!
          * @brief Swap two arrays.
@@ -751,16 +723,6 @@ namespace rad::json {
         object(std::initializer_list<std::pair<std::string_view, value>> init,
                std::size_t min_capacity = 0);
 
-        /*
-        object(const object& other);
-
-        object(object&& other) noexcept;
-
-        object& operator=(const object& other) const;
-
-        object& operator=(object&& other) noexcept;
-        */
-
         ~object();
 
         /*!
@@ -826,9 +788,7 @@ namespace rad::json {
          * @return Iterator to the first element, or end() if
          * the object is empty.
          */
-        iterator begin() {
-            return keys_values_.begin();
-        }
+        iterator begin();
 
         /*!
          * @brief Return an iterator to the element following
@@ -839,9 +799,7 @@ namespace rad::json {
          * @return Iterator to the element following the last
          * element.
          */
-        iterator end() {
-            return keys_values_.end();
-        }
+        iterator end();
 
         /*!
          * @brief Return a const iterator to the first element.
@@ -850,9 +808,7 @@ namespace rad::json {
          * @return Iterator to the first element, or end() if
          * the object is empty.
          */
-        const_iterator begin() const {
-            return keys_values_.begin();
-        }
+        const_iterator begin() const;
 
         /*!
          * @brief Return an iterator to the element following
@@ -863,9 +819,7 @@ namespace rad::json {
          * @return Iterator to the element following the last
          * element.
          */
-        const_iterator end() const {
-            return keys_values_.end();
-        }
+        const_iterator end() const;
 
         /*!
          * @brief Return a const iterator to the first element.
@@ -874,9 +828,7 @@ namespace rad::json {
          * @return Iterator to the first element, or end() if
          * the object is empty.
          */
-        const_iterator cbegin() const {
-            return keys_values_.cbegin();
-        }
+        const_iterator cbegin() const;
 
         /*!
          * @brief Return an iterator to the element following
@@ -887,9 +839,7 @@ namespace rad::json {
          * @return Iterator to the element following the last
          * element.
          */
-        const_iterator cend() const {
-            return keys_values_.cend();
-        }
+        const_iterator cend() const;
 
         /*!
          * @brief Return a reverse iterator to the first element
@@ -901,9 +851,7 @@ namespace rad::json {
          * @return Reverse iterator to the first element of the
          * reversed container.
          */
-        reverse_iterator rbegin() {
-            return keys_values_.rbegin();
-        }
+        reverse_iterator rbegin();
 
         /*!
          * @brief Return a reverse iterator to the element
@@ -917,9 +865,7 @@ namespace rad::json {
          * @return Reverse iterator to the element following the
          * last element of the reversed container.
          */
-        reverse_iterator rend() {
-            return keys_values_.rend();
-        }
+        reverse_iterator rend();
 
         /*!
          * @brief Return a const reverse iterator to the first
@@ -931,9 +877,7 @@ namespace rad::json {
          * @return Reverse iterator to the first element of the
          * reversed container.
          */
-        const_reverse_iterator rbegin() const {
-            return keys_values_.rbegin();
-        }
+        const_reverse_iterator rbegin() const;
 
         /*!
          * @brief Return a const reverse iterator to the element
@@ -947,9 +891,7 @@ namespace rad::json {
          * @return Reverse iterator to the element following the
          * last element of the reversed container.
          */
-        const_reverse_iterator rend() const {
-            return keys_values_.rend();
-        }
+        const_reverse_iterator rend() const;
 
         /*!
          * @brief Return a const reverse iterator to the first
@@ -961,9 +903,7 @@ namespace rad::json {
          * @return Reverse iterator to the first element of the
          * reversed container.
          */
-        const_reverse_iterator crbegin() const {
-            return keys_values_.crbegin();
-        }
+        const_reverse_iterator crbegin() const;
 
         /*!
          * @brief Return a const reverse iterator to the element
@@ -977,9 +917,7 @@ namespace rad::json {
          * @return Reverse iterator to the element following the
          * last element of the reversed container.
          */
-        const_reverse_iterator crend() const {
-            return keys_values_.crend();
-        }
+        const_reverse_iterator crend() const;
 
         /*!
          * @brief Return the number of elements that can be held
@@ -2693,6 +2631,14 @@ namespace rad::json {
         return values_.size();
     }
 
+    inline value* array::data() noexcept {
+        return values_.data();
+    }
+
+    inline const value* array::data() const noexcept {
+        return values_.data();
+    }
+
     template <class... Args>
     value& array::emplace_back(Args&&... args) {
         return values_.emplace_back(std::forward<Args>(args)...);
@@ -2707,6 +2653,54 @@ namespace rad::json {
     auto array::insert(const_iterator pos, InputIt first, InputIt last)
         -> iterator {
         return values_.insert(pos, first, last);
+    }
+
+    inline auto array::begin() -> iterator {
+        return values_.begin();
+    }
+
+    inline auto array::end() -> iterator {
+        return values_.end();
+    }
+
+    inline auto array::begin() const -> const_iterator {
+        return values_.begin();
+    }
+
+    inline auto array::end() const -> const_iterator {
+        return values_.end();
+    }
+
+    inline auto array::cbegin() const -> const_iterator {
+        return values_.cbegin();
+    }
+
+    inline auto array::cend() const -> const_iterator {
+        return values_.cend();
+    }
+
+    inline auto array::rbegin() -> reverse_iterator {
+        return values_.rbegin();
+    }
+
+    inline auto array::rend() -> reverse_iterator {
+        return values_.rend();
+    }
+
+    inline auto array::rbegin() const -> const_reverse_iterator {
+        return values_.rbegin();
+    }
+
+    inline auto array::rend() const -> const_reverse_iterator {
+        return values_.rend();
+    }
+
+    inline auto array::crbegin() const -> const_reverse_iterator {
+        return values_.crbegin();
+    }
+
+    inline auto array::crend() const -> const_reverse_iterator {
+        return values_.crend();
     }
 
     inline object::object() noexcept = default;
@@ -2768,6 +2762,54 @@ namespace rad::json {
             it->value() = value{std::forward<Args>(args)...};
         }
         return std::pair{it, insert_new};
+    }
+
+    inline auto object::begin() -> iterator {
+        return keys_values_.begin();
+    }
+
+    inline auto object::end() -> iterator {
+        return keys_values_.end();
+    }
+
+    inline auto object::begin() const -> const_iterator {
+        return keys_values_.begin();
+    }
+
+    inline auto object::end() const -> const_iterator {
+        return keys_values_.end();
+    }
+
+    inline auto object::cbegin() const -> const_iterator {
+        return keys_values_.cbegin();
+    }
+
+    inline auto object::cend() const -> const_iterator {
+        return keys_values_.cend();
+    }
+
+    inline auto object::rbegin() -> reverse_iterator {
+        return keys_values_.rbegin();
+    }
+
+    inline auto object::rend() -> reverse_iterator {
+        return keys_values_.rend();
+    }
+
+    inline auto object::rbegin() const -> const_reverse_iterator {
+        return keys_values_.rbegin();
+    }
+
+    inline auto object::rend() const -> const_reverse_iterator {
+        return keys_values_.rend();
+    }
+
+    inline auto object::crbegin() const -> const_reverse_iterator {
+        return keys_values_.crbegin();
+    }
+
+    inline auto object::crend() const -> const_reverse_iterator {
+        return keys_values_.crend();
     }
 
     inline value::value(std::nullptr_t) noexcept : storage_{nullptr} {

@@ -22,8 +22,8 @@ namespace RAD_LIB_NAMESPACE::crypto {
     template <class Cipher>
     class alignas(16) ctr_mode {
         using btype =
-            std::conditional_t<Cipher::block_length == sizeof(__m128i), __m128i,
-                               typename Cipher::block_type>;
+            std::conditional_t<Cipher::block_length == sizeof(m128i_type),
+                               m128i_type, typename Cipher::block_type>;
 
     public:
         using cipher_type = typename Cipher::encryption_only_cipher;
@@ -313,7 +313,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
 
     private:
         btype encrypt_counter(const iv_type& iv) {
-            if constexpr (std::is_same_v<btype, __m128i>) {
+            if constexpr (std::is_same_v<btype, m128i_type>) {
                 btype enc = m128i_utils::load(iv.data());
                 cipher_.enrypt_m128i(enc);
                 return enc;
@@ -358,7 +358,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
 
             const bool is_aligned =
                 reinterpret_cast<uintptr_t>(input_output.data()) % 16 == 0;
-            if (!std::is_same_v<btype, __m128i> || !is_aligned) {
+            if (!std::is_same_v<btype, m128i_type> || !is_aligned) {
                 auto blocks = input_output.to_span<iv_type>().subspan(
                     0, input_output.size() / block_length);
                 encrypt_unaligned_blocks(blocks);
@@ -386,7 +386,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
         }
 
         void encrypt_aligned_blocks(std::span<btype> blocks)
-            requires(std::is_same_v<btype, __m128i>)
+            requires(std::is_same_v<btype, m128i_type>)
         {
             for (auto& block : blocks) {
                 block = m128i_utils::xor128(block, encrypt_counter(iv_));
@@ -395,10 +395,10 @@ namespace RAD_LIB_NAMESPACE::crypto {
         }
 
         void encrypt_unaligned_blocks(std::span<iv_type> blocks)
-            requires(std::is_same_v<btype, __m128i>)
+            requires(std::is_same_v<btype, m128i_type>)
         {
             for (auto& block : blocks) {
-                __m128i aligned_block = m128i_utils::load(block.data());
+                m128i_type aligned_block = m128i_utils::load(block.data());
                 aligned_block =
                     m128i_utils::xor128(aligned_block, encrypt_counter(iv_));
                 m128i_utils::store(aligned_block, block.data());
@@ -407,7 +407,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
         }
 
         void encrypt_unaligned_blocks(std::span<iv_type> blocks)
-            requires(!std::is_same_v<btype, __m128i>)
+            requires(!std::is_same_v<btype, m128i_type>)
         {
             for (auto& block : blocks) {
                 xor_bytes(block, encrypt_counter(iv_));

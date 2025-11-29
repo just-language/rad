@@ -1,5 +1,4 @@
 #include <rad/crypto/aes.h>
-#include <wmmintrin.h>
 
 using namespace RAD_LIB_NAMESPACE;
 using namespace crypto;
@@ -211,8 +210,9 @@ namespace {
 
     inline constexpr uint8_t gmul_8_by_2(uint8_t a) {
         // h is 0xff if the high bit of r[c] is set, 0 otherwise
-        uint8_t h = (uint8_t)((char)a >> 7); // arithmetic right shift, thus
-                                             // shifting in either zeros or ones
+        uint8_t h =
+            (uint8_t)((signed char)a >> 7); // arithmetic right shift, thus
+                                            // shifting in either zeros or ones
         uint8_t b = a << 1; // implicitly removes high bit because b[c]
                             // is an 8-bit char, so we xor by 0x1b and
                             // not 0x11b in the next line

@@ -514,10 +514,6 @@ std::size_t parser::count_options(std::string_view long_name) const noexcept {
 }
 
 std::size_t parser::count_options(char short_name) const noexcept {
-    if (short_name == -1) {
-        return 0;
-    }
-
     size_t n = 0;
     for (const auto& opt : opts) {
         if (opt.parsed_ && opt.short_name() == short_name) {
@@ -549,10 +545,6 @@ bool parser::has_option(std::string_view long_name) const noexcept {
 }
 
 bool parser::has_option(char short_name) const noexcept {
-    if (short_name == -1) {
-        return false;
-    }
-
     return std::find_if(
                opts.begin(), opts.end(), [short_name](const option& opt) {
                    return opt.parsed_ && opt.short_name() == short_name;

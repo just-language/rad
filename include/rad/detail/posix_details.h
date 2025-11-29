@@ -10,7 +10,7 @@ extern "C" {
 
 using socket_fd_t = int;
 
-using socklen_t = unsigned int;
+using socket_len_t = unsigned int;
 
-extern int close(int __fd);
+extern int close(int fd);
 }

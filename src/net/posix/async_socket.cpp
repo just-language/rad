@@ -84,7 +84,7 @@ void async_socket_impl::shutdown(socket_shutdown how,
 
 void async_socket_impl::set_option(socket_option_level level,
                                    socket_option_name optname,
-                                   const void* optdata, socklen_t optlen,
+                                   const void* optdata, socket_len_t optlen,
                                    std::error_code& ec) noexcept {
     ec.clear();
     if (::setsockopt(native_handle().get(), as<int>(level), as<int>(optname),
@@ -95,31 +95,37 @@ void async_socket_impl::set_option(socket_option_level level,
 
 void async_socket_impl::get_option(socket_option_level level,
                                    socket_option_name optname, void* optdata,
-                                   socklen_t& optlen,
+                                   socket_len_t& optlen,
                                    std::error_code& ec) const noexcept {
     ec.clear();
+    socklen_t opt_len = optlen;
     if (::getsockopt(native_handle().get(), as<int>(level), as<int>(optname),
-                     optdata, &optlen) == -1) {
+                     optdata, &opt_len) == -1) {
         ec = os::make_system_error(errno);
     }
+    optlen = opt_len;
 }
 
-void async_socket_impl::local_endpoint(void* address, socklen_t& size,
+void async_socket_impl::local_endpoint(void* address, socket_len_t& size,
                                        std::error_code& ec) const noexcept {
     ec.clear();
+    socklen_t add_len = size;
     if (::getsockname(native_handle().get(), static_cast<sockaddr*>(address),
-                      &size) == -1) {
+                      &add_len) == -1) {
         ec = os::make_system_error(errno);
     }
+    size = add_len;
 }
 
-void async_socket_impl::remote_endpoint(void* address, socklen_t& size,
+void async_socket_impl::remote_endpoint(void* address, socket_len_t& size,
                                         std::error_code& ec) const noexcept {
     ec.clear();
+    socklen_t add_len = size;
     if (::getpeername(native_handle().get(), static_cast<sockaddr*>(address),
-                      &size) == -1) {
+                      &add_len) == -1) {
         ec = os::make_system_error(errno);
     }
+    size = add_len;
 }
 
 void async_socket_impl::listen(int backlog, std::error_code& ec) noexcept {
@@ -130,7 +136,7 @@ void async_socket_impl::listen(int backlog, std::error_code& ec) noexcept {
     }
 }
 
-void async_socket_impl::bind(const void* address, socklen_t size,
+void async_socket_impl::bind(const void* address, socket_len_t size,
                              std::error_code& ec) noexcept {
     ec.clear();
     const sockaddr* saddr = static_cast<const sockaddr*>(address);
@@ -144,7 +150,7 @@ void async_socket_impl::bind(const void* address, socklen_t size,
 
 // sync operations
 
-auto async_socket_impl::accept(void* address, socklen_t& size,
+auto async_socket_impl::accept(void* address, socket_len_t& size,
                                std::error_code& ec) noexcept
     -> native_handle_type {
     ec.clear();
@@ -177,7 +183,7 @@ auto async_socket_impl::accept(void* address, socklen_t& size,
     }
 }
 
-void async_socket_impl::connect(const void* address, socklen_t size,
+void async_socket_impl::connect(const void* address, socket_len_t size,
                                 std::error_code& ec) noexcept {
     ec.clear();
     if (!is_open()) {
@@ -219,7 +225,7 @@ void async_socket_impl::connect(const void* address, socklen_t size,
 
 std::size_t async_socket_impl::send_to(const const_buffer* buffs, std::size_t n,
                                        transfer_flags flags,
-                                       const void* address, socklen_t size,
+                                       const void* address, socket_len_t size,
                                        std::error_code& ec) noexcept {
     ec.clear();
     if (!is_open()) {
@@ -262,7 +268,7 @@ std::size_t async_socket_impl::send_to(const const_buffer* buffs, std::size_t n,
 std::size_t async_socket_impl::receive_from(const mutable_buffer* buffs,
                                             std::size_t n, bool not_zero,
                                             transfer_flags flags, void* address,
-                                            socklen_t& size,
+                                            socket_len_t& size,
                                             std::error_code& ec) noexcept {
     ec.clear();
     if (!is_open()) {
@@ -299,7 +305,7 @@ std::size_t async_socket_impl::receive_from(const mutable_buffer* buffs,
 
 // async operations
 
-async_result async_socket_impl::async_accept(void* address, socklen_t* size,
+async_result async_socket_impl::async_accept(void* address, socket_len_t* size,
                                              op_alloc_fn alloc_fn) noexcept {
     if (!is_open()) {
         return async_result::failed(
@@ -342,15 +348,20 @@ async_result async_socket_impl::async_accept(void* address, socklen_t* size,
 }
 
 async_result async_socket_impl::perform_accept(void* address,
-                                               socklen_t* size) noexcept {
+                                               socket_len_t* size) noexcept {
     // the lock is held
 
     int flags = SOCK_CLOEXEC | SOCK_NONBLOCK;
     // if the socket is ready for in operations, try to accept immediately
+    socklen_t addr_len = size != nullptr ? *size : 0;
     int result = exec_while_eintr(::accept4, native_handle().get(),
-                                  static_cast<sockaddr*>(address), size, flags);
+                                  static_cast<sockaddr*>(address),
+                                  size == nullptr ? nullptr : &addr_len, flags);
 
     if (result != -1) {
+        if (size != nullptr) {
+            *size = addr_len;
+        }
         return async_result::success(
             static_cast<std::size_t>(result)); // result is the fd
     }
@@ -367,7 +378,8 @@ async_result async_socket_impl::perform_accept(void* address,
     return async_result::pending();
 }
 
-async_result async_socket_impl::async_connect(const void* addr, socklen_t len,
+async_result async_socket_impl::async_connect(const void* addr,
+                                              socket_len_t len,
                                               op_alloc_fn alloc_fn) noexcept {
     if (!is_open()) {
         return async_result::failed(
@@ -410,7 +422,7 @@ async_result async_socket_impl::async_connect(const void* addr, socklen_t len,
 }
 
 async_result async_socket_impl::perform_connect(const void* addr,
-                                                socklen_t len) noexcept {
+                                                socket_len_t len) noexcept {
     // the lock is held here
 
     int result = exec_while_eintr(::connect, native_handle().get(),
@@ -444,7 +456,7 @@ int async_socket_impl::get_connect_result() noexcept {
 }
 
 async_result async_socket_impl::async_sendto(
-    io::iovec_buffers& buffs, const void* addr, socklen_t addr_len,
+    io::iovec_buffers& buffs, const void* addr, socket_len_t addr_len,
     transfer_flags flags, function_view<write_op_base*()> alloc_fn) noexcept {
     flags |= transfer_flags::no_signal | transfer_flags::dont_wait;
     flags &= ~transfer_flags::wait_all;
@@ -497,7 +509,7 @@ async_result async_socket_impl::perform_sendto(bool first_time,
                                                io::iovec_buffers& buffs,
                                                transfer_flags flags,
                                                const void* addr,
-                                               socklen_t addr_len) noexcept {
+                                               socket_len_t addr_len) noexcept {
     // the lock is held
     std::size_t total_transferred = 0;
     io::iovec_buff null_iovec{};
@@ -557,7 +569,7 @@ async_result async_socket_impl::perform_sendto(bool first_time,
 }
 
 async_result async_socket_impl::async_recvfrom(
-    io::iovec_buffers& buffs, void* addr, socklen_t& addr_len,
+    io::iovec_buffers& buffs, void* addr, socket_len_t& addr_len,
     transfer_flags flags, bool not_zero,
     function_view<read_op_base*()> alloc_fn) noexcept {
     if (!is_open()) {
@@ -609,7 +621,7 @@ async_result async_socket_impl::async_recvfrom(
 async_result async_socket_impl::perform_recvfrom(io::iovec_buffers& buffs,
                                                  transfer_flags flags,
                                                  void* addr,
-                                                 socklen_t* addr_len,
+                                                 socket_len_t* addr_len,
                                                  bool not_zero) noexcept {
     // the lock is held
     std::size_t total_transferred = 0;
@@ -632,13 +644,15 @@ async_result async_socket_impl::perform_recvfrom(io::iovec_buffers& buffs,
         not_zero = true;
 
         ssize_t result = -1;
-        socklen_t msg_namelen = 0;
+        socket_len_t msg_namelen = 0;
         if (buffs_count == 1) {
-            if (addr_len != 0 && addr != nullptr) {
+            if (addr_len != nullptr && addr != nullptr) {
+                socklen_t from_len = *addr_len;
                 result = exec_while_eintr(::recvfrom, native_handle().get(),
                                           buffs_ptr->iov_base,
                                           buffs_ptr->iov_len, as<int>(flags),
-                                          as<sockaddr*>(addr), addr_len);
+                                          as<sockaddr*>(addr), &from_len);
+                *addr_len = from_len;
             }
             else {
                 result = exec_while_eintr(::recv, native_handle().get(),

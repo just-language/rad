@@ -20,8 +20,8 @@ namespace RAD_LIB_NAMESPACE::crypto {
     template <class Cipher, class Padding = PKCS7>
     class alignas(16) cbc_mode {
         using btype =
-            std::conditional_t<Cipher::block_length == sizeof(__m128i), __m128i,
-                               typename Cipher::block_type>;
+            std::conditional_t<Cipher::block_length == sizeof(m128i_type),
+                               m128i_type, typename Cipher::block_type>;
 
     public:
         using cipher_type = Cipher;
@@ -99,7 +99,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
             auto nonce_span = nonce.to_span<uint8_t>();
 
             if (nonce.size() >= iv_size) {
-                if constexpr (std::is_same_v<btype, __m128i>) {
+                if constexpr (std::is_same_v<btype, m128i_type>) {
                     iv_ = m128i_utils::load(nonce_span.data());
                 }
                 else {
@@ -313,7 +313,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
 
     private:
         static void store_iv(btype& iv, block_type& block) {
-            if constexpr (std::is_same_v<btype, __m128i>) {
+            if constexpr (std::is_same_v<btype, m128i_type>) {
                 iv = m128i_utils::load(block.data());
             }
             else {
@@ -322,8 +322,8 @@ namespace RAD_LIB_NAMESPACE::crypto {
         }
 
         void xor_iv_plaintext(block_type& plaintext) const noexcept {
-            if constexpr (std::is_same_v<btype, __m128i>) {
-                __m128i aligned_block = m128i_utils::load(plaintext.data());
+            if constexpr (std::is_same_v<btype, m128i_type>) {
+                m128i_type aligned_block = m128i_utils::load(plaintext.data());
                 m128i_utils::store(m128i_utils::xor128(aligned_block, iv_),
                                    plaintext.data());
             }

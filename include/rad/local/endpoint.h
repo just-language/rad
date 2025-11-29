@@ -14,7 +14,7 @@ namespace RAD_LIB_NAMESPACE::local {
 
     public:
         /// The size type of unix address.
-        using size_type = socklen_t;
+        using size_type = socket_len_t;
 
         /// This endpoint is resizable.
         static constexpr bool resizable = true;
@@ -209,7 +209,7 @@ namespace RAD_LIB_NAMESPACE::local {
          * @brief Get the maximum size of the endpoint.
          * @return The maximum size of the endpoint.
          */
-        static constexpr socklen_t max_size() noexcept {
+        static constexpr socket_len_t max_size() noexcept {
             return sizeof(local_addr_t);
         }
 

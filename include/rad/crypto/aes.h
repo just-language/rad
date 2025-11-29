@@ -1,11 +1,14 @@
 #pragma once
 #include <rad/big_endian.h>
 #include <rad/buffer.h>
-#include <rad/cpu.h>
 #include <rad/dynamic_buffer.h>
 #include <rad/libbase.h>
 #include <rad/trackable.h>
+#include <rad/crypto/detail/m128.h>
+#ifdef RAD_FAST_CRYPTO
+#include <rad/cpu.h>
 #include <wmmintrin.h>
+#endif // RAD_FAST_CRYPTO
 
 #include <cstring>
 #include <random>
@@ -88,25 +91,25 @@ namespace RAD_LIB_NAMESPACE::crypto::detail {
     template <class AesConsts>
     struct alignas(16) aesni_keys_type<AesConsts, false> {
         union {
-            __m128i first_enc_key;
-            __m128i last_dec_key;
+            m128i_type first_enc_key;
+            m128i_type last_dec_key;
         };
-        alignas(16)
-            std::array<__m128i, (AesConsts::key_expand_size / 16) - 2> enc_keys;
+        alignas(16) std::array<m128i_type,
+                               (AesConsts::key_expand_size / 16) - 2> enc_keys;
         union {
-            __m128i last_enc_key;
-            __m128i first_dec_key;
+            m128i_type last_enc_key;
+            m128i_type first_dec_key;
         };
-        alignas(16)
-            std::array<__m128i, (AesConsts::key_expand_size / 16) - 2> dec_keys;
+        alignas(16) std::array<m128i_type,
+                               (AesConsts::key_expand_size / 16) - 2> dec_keys;
     };
 
     template <class AesConsts>
     struct alignas(16) aesni_keys_type<AesConsts, true> {
-        __m128i first_enc_key;
-        alignas(16)
-            std::array<__m128i, (AesConsts::key_expand_size / 16) - 2> enc_keys;
-        __m128i last_enc_key;
+        m128i_type first_enc_key;
+        alignas(16) std::array<m128i_type,
+                               (AesConsts::key_expand_size / 16) - 2> enc_keys;
+        m128i_type last_enc_key;
     };
 
 #else
@@ -225,16 +228,17 @@ namespace RAD_LIB_NAMESPACE::crypto::detail {
     inline RAD_CRYPTO_FN_ATTRIBUTE_AES void aesni_expand_enc_key(
         aes_expanded_key<aes_256_constants, EncryptionOnly>& round_keys,
         const aes_input_key<aes_256_constants>& key) noexcept {
-        __m128i X1 = _mm_setzero_si128(), X3 = _mm_setzero_si128();
-        __m128i X0 = *reinterpret_cast<const __m128i*>(key.key_bytes.data());
-        __m128i X2 =
-            *reinterpret_cast<const __m128i*>(&key.key_bytes[sizeof(__m128i)]);
+        m128i_type X1 = _mm_setzero_si128(), X3 = _mm_setzero_si128();
+        m128i_type X0 =
+            *reinterpret_cast<const m128i_type*>(key.key_bytes.data());
+        m128i_type X2 = *reinterpret_cast<const m128i_type*>(
+            &key.key_bytes[sizeof(m128i_type)]);
 
         auto& rkeys = round_keys.aesni_keys;
         rkeys.first_enc_key = X0;
         rkeys.enc_keys[0] = X2;
 
-        auto expand_key1 = [&]<class Rcon>(__m128i& k,
+        auto expand_key1 = [&]<class Rcon>(m128i_type& k,
                                            Rcon) RAD_CRYPTO_FN_ATTRIBUTE_AES {
             X1 = _mm_shuffle_epi32(_mm_aeskeygenassist_si128(X2, Rcon::rcon),
                                    0xff);
@@ -247,7 +251,7 @@ namespace RAD_LIB_NAMESPACE::crypto::detail {
             k = X0;
         };
 
-        auto expand_key2 = [&]<class Rcon>(__m128i& k,
+        auto expand_key2 = [&]<class Rcon>(m128i_type& k,
                                            Rcon) RAD_CRYPTO_FN_ATTRIBUTE_AES {
             X1 = _mm_shuffle_epi32(_mm_aeskeygenassist_si128(X0, Rcon::rcon),
                                    0xaa);
@@ -294,11 +298,12 @@ namespace RAD_LIB_NAMESPACE::crypto::detail {
         const aes_input_key<aes_128_constants>& key) noexcept {
         auto& rkeys = round_keys.aesni_keys;
         rkeys.first_enc_key =
-            *reinterpret_cast<const __m128i*>(key.key_bytes.data());
+            *reinterpret_cast<const m128i_type*>(key.key_bytes.data());
 
-        auto aes_expand_key = []<class Rcon>(__m128i prev_key,
+        auto aes_expand_key = []<class Rcon>(m128i_type prev_key,
                                              Rcon) RAD_CRYPTO_FN_ATTRIBUTE_AES {
-            __m128i keygened = _mm_aeskeygenassist_si128(prev_key, Rcon::rcon);
+            m128i_type keygened =
+                _mm_aeskeygenassist_si128(prev_key, Rcon::rcon);
             keygened = _mm_shuffle_epi32(keygened, _MM_SHUFFLE(3, 3, 3, 3));
             prev_key = _mm_xor_si128(prev_key, _mm_slli_si128(prev_key, 4));
             prev_key = _mm_xor_si128(prev_key, _mm_slli_si128(prev_key, 4));
@@ -344,8 +349,9 @@ namespace RAD_LIB_NAMESPACE::crypto::detail {
     }
 
     template <class AesConsts, bool EncryptionOnly>
-    inline RAD_CRYPTO_FN_ATTRIBUTE_AES __m128i aesni_enc_block(
-        __m128i state, const aesni_keys_type<AesConsts, EncryptionOnly>& keys) {
+    inline RAD_CRYPTO_FN_ATTRIBUTE_AES m128i_type
+    aesni_enc_block(m128i_type state,
+                    const aesni_keys_type<AesConsts, EncryptionOnly>& keys) {
         state = _mm_xor_si128(state, keys.first_enc_key);
         for (size_t i = 0; i < keys.enc_keys.size(); ++i) {
             state = _mm_aesenc_si128(state, keys.enc_keys[i]);
@@ -354,8 +360,8 @@ namespace RAD_LIB_NAMESPACE::crypto::detail {
     }
 
     template <class AesConsts>
-    inline RAD_CRYPTO_FN_ATTRIBUTE_AES __m128i aesni_dec_block(
-        __m128i state, const aesni_keys_type<AesConsts, false>& keys) {
+    inline RAD_CRYPTO_FN_ATTRIBUTE_AES m128i_type aesni_dec_block(
+        m128i_type state, const aesni_keys_type<AesConsts, false>& keys) {
         state = _mm_xor_si128(state, keys.first_dec_key);
         for (size_t i = 0; i < keys.dec_keys.size(); ++i) {
             state = _mm_aesdec_si128(state, keys.dec_keys[i]);
@@ -375,7 +381,11 @@ namespace RAD_LIB_NAMESPACE::crypto {
      * @return True if CPU AES-NI instructions are used, otherwise false.
      */
     inline bool using_aesni() noexcept {
+#ifdef RAD_FAST_CRYPTO
         return detail::use_cpu_aesni_if_available && cpu::aes();
+#else
+        return false;
+#endif // RAD_FAST_CRYPTO
     }
 
     /*!
@@ -412,7 +422,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
             return reinterpret_cast<uintptr_t>(p) % 16 == 0;
         }
 
-        static bool is_ptr_aligned_16(const __m128i* p) {
+        static bool is_ptr_aligned_16(const m128i_type* p) {
             return reinterpret_cast<uintptr_t>(p) % 16 == 0;
         }
 
@@ -557,10 +567,10 @@ namespace RAD_LIB_NAMESPACE::crypto {
             assert(has_key());
 #ifdef RAD_FAST_CRYPTO
             if (using_aesni()) {
-                __m128i state = *reinterpret_cast<const __m128i*>(buff);
+                m128i_type state = *reinterpret_cast<const m128i_type*>(buff);
                 state = detail::aesni_enc_block<AesConsts>(
                     state, expanded_key_.aesni_keys);
-                *reinterpret_cast<__m128i*>(buff) = state;
+                *reinterpret_cast<m128i_type*>(buff) = state;
                 return;
             }
 #endif // RAD_FAST_CRYPTO
@@ -582,10 +592,11 @@ namespace RAD_LIB_NAMESPACE::crypto {
             assert(has_key());
 #ifdef RAD_FAST_CRYPTO
             if (using_aesni()) {
-                __m128i state = *reinterpret_cast<const __m128i*>(block.data());
+                m128i_type state =
+                    *reinterpret_cast<const m128i_type*>(block.data());
                 state = detail::aesni_enc_block<AesConsts>(
                     state, expanded_key_.aesni_keys);
-                *reinterpret_cast<__m128i*>(block.data()) = state;
+                *reinterpret_cast<m128i_type*>(block.data()) = state;
                 return;
             }
 #endif // RAD_FAST_CRYPTO
@@ -602,7 +613,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
          * set, the behavior is undefined.
          * @param block 128-bit integer to encrypt.
          */
-        void enrypt(__m128i& block) const noexcept {
+        void enrypt(m128i_type& block) const noexcept {
             enrypt_m128i(block);
         }
 
@@ -613,7 +624,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
          * set, the behavior is undefined.
          * @param block 128-bit integer to encrypt.
          */
-        void enrypt_m128i(__m128i& block) const noexcept {
+        void enrypt_m128i(m128i_type& block) const noexcept {
             assert(is_ptr_aligned_16(&block));
             assert(has_key());
 #ifdef RAD_FAST_CRYPTO
@@ -646,10 +657,10 @@ namespace RAD_LIB_NAMESPACE::crypto {
             assert(has_key());
 #ifdef RAD_FAST_CRYPTO
             if (using_aesni()) {
-                __m128i state = *reinterpret_cast<const __m128i*>(buff);
+                m128i_type state = *reinterpret_cast<const m128i_type*>(buff);
                 state = detail::aesni_dec_block<AesConsts>(
                     state, expanded_key_.aesni_keys);
-                *reinterpret_cast<__m128i*>(buff) = state;
+                *reinterpret_cast<m128i_type*>(buff) = state;
                 return;
             }
 #endif // RAD_FAST_CRYPTO
@@ -673,10 +684,11 @@ namespace RAD_LIB_NAMESPACE::crypto {
             assert(has_key());
 #ifdef RAD_FAST_CRYPTO
             if (using_aesni()) {
-                __m128i state = *reinterpret_cast<const __m128i*>(block.data());
+                m128i_type state =
+                    *reinterpret_cast<const m128i_type*>(block.data());
                 state = detail::aesni_dec_block<AesConsts>(
                     state, expanded_key_.aesni_keys);
-                *reinterpret_cast<__m128i*>(block.data()) = state;
+                *reinterpret_cast<m128i_type*>(block.data()) = state;
                 return;
             }
 #endif // RAD_FAST_CRYPTO
@@ -693,7 +705,7 @@ namespace RAD_LIB_NAMESPACE::crypto {
          * set, the behavior is undefined.
          * @param block 128-bit integer to decrypt.
          */
-        void decrypt(__m128i& block) {
+        void decrypt(m128i_type& block) {
             assert(is_ptr_aligned_16(&block));
             assert(has_key());
 #ifdef RAD_FAST_CRYPTO
