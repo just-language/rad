@@ -5,6 +5,10 @@
 #define NO_WOLFSSL_STUB
 #define HAVE_EX_DATA
 #define WOLFSSL_NO_OPTIONS_H
+#define OPENSSL_EXTRA
+#define HAVE_ALPN
+#define HAVE_SNI
+#define WOLFSSL_TLS13
 #include <wolfssl/error-ssl.h>
 #include <wolfssl/ssl.h>
 
