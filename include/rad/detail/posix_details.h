@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined(__unix__)
+#if !defined(__unix__) && !defined(__APPLE__)
 #error "this file is to be compiled only on posix os"
 #endif
 

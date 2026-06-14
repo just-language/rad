@@ -8,7 +8,7 @@
 #include <In6addr.h>
 #include <MSWSock.h>
 #include <Windows.h>
-#elif __unix__
+#elif defined(__unix__) || defined(__APPLE__)
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/types.h>
