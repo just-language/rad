@@ -4,16 +4,17 @@
 #ifdef RAD_CPU_ARM_ARCH
 #include <arm_neon.h>
 #else
-#include <wmmintrin.h>
-#ifdef __unix__
-#include <tmmintrin.h>
-#endif // __unix__
+#include <immintrin.h>
 #endif // RAD_CPU_ARM_ARCH
 
 #if defined(__GNUC__) || defined(__clang__)
 #ifdef RAD_CPU_ARM_ARCH
-#define RAD_FN_ATTRIBUTE_M128_SHUFFLE __attribute__((target("simd")))
-#define RAD_FN_ATTRIBUTE_CLMUL __attribute__((target("crypto")))
+#define RAD_FN_ATTRIBUTE_M128_SHUFFLE __attribute__((target("+simd")))
+#ifdef RAD_CPU_ARM64_ARCH
+#define RAD_FN_ATTRIBUTE_CLMUL __attribute__((target("+crypto")))
+#else
+#define RAD_FN_ATTRIBUTE_CLMUL
+#endif // RAD_CPU_ARM64_ARCH
 #else
 #define RAD_FN_ATTRIBUTE_M128_SHUFFLE __attribute__((target("sse4.1")))
 #define RAD_FN_ATTRIBUTE_CLMUL __attribute__((target("pclmul")))
@@ -162,8 +163,12 @@ namespace RAD_LIB_NAMESPACE::crypto {
                 b_poly = vget_high_p64(vreinterpretq_p64_u8(b));
                 break;
             }
-            poly128_t result_poly =
+            auto result_poly =
+#if defined(_MSC_VER) && !defined(__clang__)
+                vmull_p64(a_poly, b_poly);
+#else
                 vmull_p64(vget_lane_p64(a_poly, 0), vget_lane_p64(b_poly, 0));
+#endif // defined(_MSC_VER) && !defined(__clang__)
             return vreinterpretq_u8_p128(result_poly);
 #elif defined(RAD_CPU_ARM_ARCH)
             return zero128();
