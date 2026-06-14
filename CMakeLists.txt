@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 20)
-project (rad VERSION 0.0.1 LANGUAGES C CXX)
+project (rad VERSION 0.0.3 LANGUAGES C CXX)
 set(LIBRARY_NAME "rad")
 
 option(WITH_ASYNC_DEBUG "Enable async debugging and logging" OFF)
